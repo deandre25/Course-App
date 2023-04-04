@@ -8,7 +8,8 @@ const userSchema = new Schema({
         type: String,
         required: true
     },
-    name: {
+    name: String,
+    password: {
         type: String,
         required: true
     },
@@ -42,11 +43,6 @@ userSchema.methods.addToCart = function (course) {
             count: 1
         })
     }
-
-    // const newCart = {
-    //     items: items
-    // }
-    // this.cart = newCart
 
     this.cart = {
         items
