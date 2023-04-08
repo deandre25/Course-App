@@ -6,6 +6,7 @@ const auth = require('../middleware/auth')
 const router = Router()
 
 router.get('/', auth, async (req, res) => {
+    console.log(req.user)
     try {
         const orders = await Order.find({
                 'user.userId': req.user._id
