@@ -10,6 +10,12 @@ const regEmail = require('../emails/registration')
 const User = require('../models/user')
 const crypto = require('crypto')
 const resetEmail = require('../emails/reset')
+const {
+    validationResult
+} = require('express-validator/check')
+const {
+    registerValidators
+} = require('../utils/validators')
 
 const transporter = nodemailer.createTransport(sendgrid({
     auth: {
@@ -67,36 +73,33 @@ router.post('/login', async (req, res) => {
     }
 })
 
-router.post('/register', async (req, res) => {
+router.post('/register', registerValidators, async (req, res) => {
     try {
         const {
             email,
             password,
-            repeat,
+
             name
         } = req.body
 
-        const candidate = await User.findOne({
-            email
-        })
-
-        if (candidate) {
-            req.flash('registerError', 'Пользователь с email таким уже существует')
-            res.redirect('/auth/login#register')
-        } else {
-            const hashPassword = await bcrypt.hash(password, 10)
-            const user = new User({
-                email,
-                name,
-                password: hashPassword,
-                cart: {
-                    items: []
-                }
-            })
-            await user.save()
-            res.redirect('/auth/login#login')
-            await transporter.sendMail(regEmail(email))
+        const errors = validationResult(req)
+        if (!errors.isEmpty()) {
+            req.flash('registerError', errors.array()[0].msg)
+            return res.status(422).redirect('/auth/login#register')
         }
+
+        const hashPassword = await bcrypt.hash(password, 10)
+        const user = new User({
+            email,
+            name,
+            password: hashPassword,
+            cart: {
+                items: []
+            }
+        })
+        await user.save()
+        await transporter.sendMail(regEmail(email))
+        res.redirect('/auth/login#login')
     } catch (e) {
         console.log(e)
     }
