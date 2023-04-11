@@ -3,6 +3,8 @@ const path = require('path')
 const csurf = require('csurf')
 const flash = require('connect-flash')
 const mongoose = require('mongoose')
+const helmet = require('helmet')
+const compression = require('compression')
 const Handlebars = require('handlebars')
 const exphbs = require('express-handlebars')
 const session = require('express-session')
@@ -22,7 +24,6 @@ const userMiddleware = require('./middleware/user')
 const errorHandler = require('./middleware/error')
 const fileMiddleware = require('./middleware/file')
 const keys = require('./keys')
-const exp = require('constants')
 
 const app = express()
 const hbs = exphbs.create({
@@ -54,6 +55,16 @@ app.use(session({
 app.use(fileMiddleware.single('avatar'))
 app.use(csurf())
 app.use(flash())
+app.use(helmet({
+    contentSecurityPolicy: {
+        directives: {
+            "default-src": ['*'],
+            "img-src": ['*'],
+            "script-src": ['*']
+        }
+    }
+}));
+app.use(compression())
 app.use(varMiddleware)
 app.use(userMiddleware)
 
